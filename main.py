@@ -8,14 +8,14 @@ from config import USER, PASSWORD, INSTANCE,RLS
 c = pysnow.Client(instance=INSTANCE, user=USER, password=PASSWORD)
 number = ""
 rls_text = {
-    "1": "(Nuevo)",
-    "2": "(Certificación)",
-    "14": "(Esperando Aceptación)",
-    "5": "(Pruebas)",
-    "6": "(Evaluar)",
-    "9": "(Implementación)",
-    "10": "(Revisión)",
-    "11": "(Cerrado)"
+    "1": "(New)",
+    "2": "(Certification)",
+    "14": "(Waiting Accept)",
+    "5": "(Test)",
+    "6": "(Evaluation)",
+    "9": "(Implementation)",
+    "10": "(Revision)",
+    "11": "(Closed)"
 }
 
 
