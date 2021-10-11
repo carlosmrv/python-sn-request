@@ -20,15 +20,13 @@ rls_text = {
 
 
 def get_status(rls=number):
-    # Define a resource, here we'll use the incident table API
-    incident = c.resource(api_path='/table/rm_release')
+    # Define a resource, here we'll use the release table API
+    release = c.resource(api_path='/table/rm_release')
 
-    # Query for incidents with state 1
-
-    response = incident.get(query={'number': rls}, stream=True)
+    response = release.get(query={'number': rls}, stream=True)
     # Iterate over the result and print out `sys_id` of the matching records.
     for record in response.all():
-        print(record['sys_id'], rls_text[record['state']])
+        print(record['number'], rls_text[record['state']])
         sys_id = record['sys_id']
         state = record['state']
         return sys_id, state
