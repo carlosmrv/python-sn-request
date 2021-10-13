@@ -2,7 +2,7 @@ import pysnow
 import requests
 from datetime import datetime, timedelta
 from itertools import chain
-from config import USER, PASSWORD, INSTANCE,RLS
+from config import USER, PASSWORD, INSTANCE,PARENT,REQGROUP,ASSGROUP
 
 # Create client object
 c = pysnow.Client(instance=INSTANCE, user=USER, password=PASSWORD)
@@ -19,6 +19,43 @@ rls_text = {
 }
 
 
+def create_rls():
+    # Define a resource, here we'll use the incident table API
+    rls = c.resource(api_path='/table/rm_release')
+    # Define Time date for rls management
+    proposed_date = datetime.now()
+    start_date = proposed_date + timedelta(minutes=30)
+    end_date = proposed_date + timedelta(days=15)
+    # Convert to string to parse Json
+    proposed_date = proposed_date.strftime("%Y-%m-%d %H:%M")
+    start_date = start_date.strftime("%Y-%m-%d %H:%M")
+    end_date = end_date.strftime("%Y-%m-%d %H:%M")
+
+    # Set the payload
+    new_record = {
+        "parent": PARENT,
+        "u_requested_group": REQGROUP,
+        "u_reason": "New Application",
+        "u_risk": "4",
+        "assignment_group": ASSGROUP,
+        "short_description": "Prueba Creacion RLSE 2",
+        "description": "Prueba Creacion RLSE 2",
+        "u_justification": "Prueba Creacion RLSE 2",
+        "u_implementation_plan": "Prueba Creacion RLSE 2",
+        "u_preproduction_proposed_date": proposed_date,
+        "u_start_date": start_date,
+        "u_end_date": end_date
+    }
+    # Create a new incident record
+    result = rls.create(payload=new_record)
+    for record in result.all():
+        print(record['number'], rls_text[record['state']])
+        sys_id_new = record['sys_id']
+        state_new = record['state']
+        rls_number_new = record['number']
+        return sys_id_new, state_new, rls_number_new
+
+
 def get_status(rls=number):
     # Define a resource, here we'll use the release table API
     release = c.resource(api_path='/table/rm_release')
@@ -27,10 +64,21 @@ def get_status(rls=number):
     # Iterate over the result and print out `sys_id` of the matching records.
     for record in response.all():
         print(record['number'], rls_text[record['state']])
-        sys_id = record['sys_id']
-        state = record['state']
-        return sys_id, state
+        sys_id_local = record['sys_id']
+        state_check = record['state']
+        return sys_id_local, state_check
+
+
+def update_rls(rls=number):
+    release = c.resource(api_path='/table/rm_release')
+    update = {'short_description': 'New short description', 'state': 5}
+
+    updated_record = release.update(query={'number': rls}, payload=update)
+
+    # Print out the updated record
+    print(updated_record)
 
 
 if __name__ == '__main__':
-    rls_id, rls_state = get_status(rls=RLS)
+    sys_id, state, rls_number = create_rls()
+    rls_id, rls_state = get_status(rls=rls_number)
