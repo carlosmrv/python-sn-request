@@ -11,6 +11,7 @@ rls_text = {
     "1": "(New)",
     "2": "(Certification)",
     "14": "(Waiting Accept)",
+    "15": "Pre-Production",
     "5": "(Test)",
     "6": "(Evaluation)",
     "9": "(Implementation)",
@@ -141,12 +142,31 @@ def update_rls_pre(rls=number):
         print("RLS state is", rls_text[rls_state])
 
 
+def approve_rls_pre(rls=number):
+    approve_sys_id = ""
+    release = c.resource(api_path='/table/sysapproval_approver')
+    rls_id, rls_state = get_rls_status(rls=rls)
+    if rls_state == "14":
+        response = release.get(query={"approver.user_name": USER, "sysapproval.number": rls}, stream=True)
+        for record in response.all():
+            approve_sys_id = record['sys_id']
+        update = {
+            "state": "approved"
+        }
+        updated_record = release.update(query={'sys_id': approve_sys_id}, payload=update)
+        print(updated_record)
+    else:
+        print("RLS state is", rls_text[rls_state])
+
+
 if __name__ == '__main__':
     # sys_id, state, rls_number = create_rls()
-    rls_id, rls_state = get_rls_status(rls=RLS)
+    # rls_id, rls_state = get_rls_status(rls=RLS)
     # task = create_task(rls=RLS)
     # task_pro = create_task(rls=RLS,enviroment="Implement")
-    update_rls_cert(rls=RLS)
-    rls_id, rls_state = get_rls_status(rls=RLS)
-    update_rls_pre(rls=RLS)
+    # update_rls_cert(rls=RLS)
+    # rls_id, rls_state = get_rls_status(rls=RLS)
+    # update_rls_pre(rls=RLS)
+    # rls_id, rls_state = get_rls_status(rls=RLS)
+    approve_rls_pre(rls=RLS)
     rls_id, rls_state = get_rls_status(rls=RLS)
