@@ -2,7 +2,7 @@ import pysnow
 import requests
 from datetime import datetime, timedelta
 from itertools import chain
-from config import USER, PASSWORD, INSTANCE,PARENT,REQGROUP,ASSGROUP
+from config import USER, PASSWORD, INSTANCE,PARENT,REQGROUP,ASSGROUP,RLS,SNOWTECHNOLOGY,SNOWAPPLICATION
 
 # Create client object
 c = pysnow.Client(instance=INSTANCE, user=USER, password=PASSWORD)
@@ -56,7 +56,7 @@ def create_rls():
         return sys_id_new, state_new, rls_number_new
 
 
-def get_status(rls=number):
+def get_rls_status(rls=number):
     # Define a resource, here we'll use the release table API
     release = c.resource(api_path='/table/rm_release')
 
@@ -79,6 +79,44 @@ def update_rls(rls=number):
     print(updated_record)
 
 
+def create_task(rls=number, enviroment="Pre-Production"):
+    # Define a resource, here we'll use the incident table API
+    task = c.resource(api_path='/table/rm_task')
+    # Define Time date for rls management
+    proposed_date = datetime.now()
+    start_date = proposed_date + timedelta(minutes=30)
+    end_date = proposed_date + timedelta(days=15)
+    # Convert to string to parse Json
+    proposed_date = proposed_date.strftime("%Y-%m-%d %H:%M")
+    start_date = start_date.strftime("%Y-%m-%d %H:%M")
+    end_date = end_date.strftime("%Y-%m-%d %H:%M")
+
+    # Set the payload
+    new_record = {
+        "top_task": rls,
+        "u_release": rls,
+        "start_date": start_date,
+        "end_date": end_date,
+        "short_description": "test 2",
+        "description": "test 2",
+        "u_state_to_resolve": enviroment,
+        "type": "Other Deployment",
+        "assignment_group": ASSGROUP,
+        "order": "100",
+        "u_technology": SNOWTECHNOLOGY,
+        "u_version": "NA",
+        "u_application": SNOWAPPLICATION
+    }
+    # Create a new incident record
+    result = task.create(payload=new_record)
+    for record in result.all():
+        print(record['number'], record['state'])
+        task_new = record['state']
+        return task_new,
+
+
 if __name__ == '__main__':
-    sys_id, state, rls_number = create_rls()
-    rls_id, rls_state = get_status(rls=rls_number)
+    # sys_id, state, rls_number = create_rls()
+    rls_id, rls_state = get_rls_status(rls=RLS)
+    # task = create_task(rls=RLS)
+    # task_pro = create_task(rls=RLS,enviroment="Implement")
