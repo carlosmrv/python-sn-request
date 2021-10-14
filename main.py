@@ -2,7 +2,7 @@ import pysnow
 import requests
 from datetime import datetime, timedelta
 from itertools import chain
-from config import USER, PASSWORD, INSTANCE,PARENT,REQGROUP,ASSGROUP,RLS,SNOWTECHNOLOGY,SNOWAPPLICATION
+from config import USER, PASSWORD, INSTANCE, PARENT, REQGROUP, ASSGROUP, RLS, SNOWTECHNOLOGY, SNOWAPPLICATION
 
 # Create client object
 c = pysnow.Client(instance=INSTANCE, user=USER, password=PASSWORD)
@@ -15,7 +15,8 @@ rls_text = {
     "6": "(Evaluation)",
     "9": "(Implementation)",
     "10": "(Revision)",
-    "11": "(Closed)"
+    "11": "(Closed)",
+    "-5": "Pending"
 }
 
 
@@ -69,16 +70,6 @@ def get_rls_status(rls=number):
         return sys_id_local, state_check
 
 
-def update_rls(rls=number):
-    release = c.resource(api_path='/table/rm_release')
-    update = {'short_description': 'New short description', 'state': 5}
-
-    updated_record = release.update(query={'number': rls}, payload=update)
-
-    # Print out the updated record
-    print(updated_record)
-
-
 def create_task(rls=number, enviroment="Pre-Production"):
     # Define a resource, here we'll use the incident table API
     task = c.resource(api_path='/table/rm_task')
@@ -115,8 +106,47 @@ def create_task(rls=number, enviroment="Pre-Production"):
         return task_new,
 
 
+def update_rls_cert(rls=number):
+    release = c.resource(api_path='/table/rm_release')
+
+    update = {
+        "state": "2",
+        "work_notes": "Se pasa la Release a Certificación"
+    }
+    rls_id, rls_state = get_rls_status(rls=rls)
+    if rls_state == "1":
+        # Update 'short_description' and 'state' for 'INC012345'
+        updated_record = release.update(query={'number': rls}, payload=update)
+        # Print out the updated record
+        print(updated_record)
+    else:
+        print("RLS state is", rls_text[rls_state])
+
+
+def update_rls_pre(rls=number):
+    release = c.resource(api_path='/table/rm_release')
+
+    update = {
+        "state": "14",
+        "work_notes": "Se pasa la Release a PRE"
+    }
+    rls_id, rls_state = get_rls_status(rls=rls)
+    # Update 'short_description' and 'state' for 'INC012345'
+    if rls_state == "2":
+        # Update 'short_description' and 'state' for 'INC012345'
+        updated_record = release.update(query={'number': rls}, payload=update)
+        # Print out the updated record
+        print(updated_record)
+    else:
+        print("RLS state is", rls_text[rls_state])
+
+
 if __name__ == '__main__':
     # sys_id, state, rls_number = create_rls()
     rls_id, rls_state = get_rls_status(rls=RLS)
     # task = create_task(rls=RLS)
     # task_pro = create_task(rls=RLS,enviroment="Implement")
+    update_rls_cert(rls=RLS)
+    rls_id, rls_state = get_rls_status(rls=RLS)
+    update_rls_pre(rls=RLS)
+    rls_id, rls_state = get_rls_status(rls=RLS)
