@@ -20,6 +20,13 @@ rls_text = {
     "-5": "Pending"
 }
 
+tsk_text = {
+    "-5": "Pending",
+    "1": "Open",
+    "3": "Closed Complete",
+    "7": "Closed Skipped"
+}
+
 
 def create_rls():
     # Define a resource, here we'll use the incident table API
@@ -159,6 +166,111 @@ def approve_rls_pre(rls=number):
         print("RLS state is", rls_text[rls_state])
 
 
+def approve_rls_test(rls=number):
+    approve_sys_id = ""
+    release = c.resource(api_path='/table/rm_release')
+    rls_id, rls_state = get_rls_status(rls=rls)
+    open_task = get_open_task(rls=rls)
+    if rls_state == "15" and len(open_task) == 0:
+        update = {
+            "state": "5",
+            "work_notes": "Se pasa la Release a Pruebas"
+        }
+        updated_record = release.update(query={'number': rls}, payload=update)
+        print(updated_record)
+    else:
+        print("RLS state is", rls_text[rls_state])
+
+
+def get_open_task(rls=number):
+    task_list = []
+    task = c.resource(api_path='/table/rm_task')
+    rls_id, rls_state = get_rls_status(rls=rls)
+    if rls_state == "15" or rls_state == "9" or rls_state == '5':
+        response = task.get(query={'top_task.number': rls, 'state': '1', 'assignment_group.name': ASSGROUP},
+                            stream=True)
+        for record in response.all():
+            # print(record['number'])
+            task_list.append(record['number'])
+        return task_list
+    else:
+        print("RLS state %s not Match with open Task" % rls_state)
+
+
+def get_task_status(tsk=number):
+    task = c.resource(api_path='/table/rm_task')
+    response = task.get(query={'number': tsk}, stream=True)
+    for record in response.all():
+        print(record)
+        state_check = record['state']
+        print(tsk_text[record['state']])
+        return state_check
+
+
+def close_task(tsk=number):
+    task = c.resource(api_path='/table/rm_task')
+    update = {
+        "work_notes": "Desplegado",
+        "state": "Closed Complete",
+        "u_close_code": "Successful automatic",
+        "close_notes": "Desplegado en PRE-STG",
+        "assigned_to": "u4x7TAn4Aq@co-example.com",
+
+    }
+    task_state = get_task_status(tsk=tsk)
+    if (task_state != "3") and (task_state != "-5"):
+        updated_record = task.update(query={'number': tsk}, payload=update)
+        print(updated_record)
+    else:
+        print("Task %s Already Closed" % tsk)
+
+def close_test_task(tsk=number):
+    task = c.resource(api_path='/table/rm_task')
+    update = {
+        "state": "Closed Complete",
+        "u_close_code": "Successful automatic",
+        "close_notes": "Desplegado en PRE-STG",
+        "assigned_to": "u4x7TAn4Aq@co-example.com",
+        'u_performance_test_type': 'Unitary',
+        'u_performance_result': 'OK',
+    }
+    task_state = get_task_status(tsk=tsk)
+    if (task_state != "3") and (task_state != "-5"):
+        updated_record = task.update(query={'number': tsk}, payload=update)
+        print(updated_record)
+    else:
+        print("Task %s Already Closed" % tsk)
+
+
+def attachment_task(tsk=number, file='requirements.txt'):
+    task = c.resource(api_path='/table/rm_task')
+
+    task_state = get_task_status(tsk=tsk)
+    if (task_state != "3") and (task_state != "-5") and (task_state != "-7"):
+        upload_record = task.get(query={'number': tsk})
+        upload_record.upload(file_path=file)
+        print(upload_record)
+    else:
+        print("Task %s Already Closed" % tsk)
+
+
+def cancel_task(tsk=number):
+    task = c.resource(api_path='/table/rm_task')
+    update = {
+        "work_notes": "Desplegado",
+        "state": "Closed Skipped",
+        "u_close_code": "Cancelled",
+        "close_notes": "Problem in task",
+        "assigned_to": "u4x7TAn4Aq@co-example.com"
+    }
+    task_state = get_task_status(tsk=tsk)
+    if (task_state != "3") and (task_state != "-5") and (task_state != "7"):
+        updated_record = task.update(query={'number': tsk}, payload=update)
+        print(updated_record)
+    else:
+        print("Task %s Already Closed" % tsk)
+
+
 if __name__ == '__main__':
     # sys_id, state, rls_number = create_rls()
     # rls_id, rls_state = get_rls_status(rls=RLS)
@@ -168,5 +280,15 @@ if __name__ == '__main__':
     # rls_id, rls_state = get_rls_status(rls=RLS)
     # update_rls_pre(rls=RLS)
     # rls_id, rls_state = get_rls_status(rls=RLS)
-    approve_rls_pre(rls=RLS)
+    # approve_rls_pre(rls=RLS)
     rls_id, rls_state = get_rls_status(rls=RLS)
+    opent_task = get_open_task(rls=RLS)
+    print(len(opent_task))
+    # attachment_task(tsk="RTSK0972004")
+    get_task_status(tsk="RTSK0972004")
+    close_test_task(tsk="RTSK0972004")
+    get_task_status(tsk="RTSK0972004")
+    approve_rls_test(rls=RLS)
+    for task in opent_task:
+        get_task_status(tsk=task)
+        # close_task(tsk=task)
