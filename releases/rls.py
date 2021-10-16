@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from config import USER, PASSWORD, INSTANCE, PARENT, REQGROUP, ASSGROUP
+from config import USER, PASSWORD, INSTANCE, PARENT, REQGROUP, ASSGROUP,CHANGEGROUP
 from status.get_status import get_rls_status, get_open_task
 import pysnow
 from dict_text import rls_text
@@ -98,7 +98,7 @@ def approve_rls_pre(rls=number):
         print("RLS state is", rls_text[rls_state])
 
 
-def approve_rls_test(rls=number):
+def update_rls_test(rls=number):
     approve_sys_id = ""
     release = c.resource(api_path='/table/rm_release')
     rls_id, rls_state = get_rls_status(rls=rls)
@@ -114,15 +114,96 @@ def approve_rls_test(rls=number):
         print("RLS state is", rls_text[rls_state])
 
 
-def approve_rls_eval(rls=number):
+def update_rls_eval(rls=number):
     approve_sys_id = ""
     release = c.resource(api_path='/table/rm_release')
     rls_id, rls_state = get_rls_status(rls=rls)
     open_task = get_open_task(rls=rls)
     if rls_state == "5" and len(open_task) == 0:
         update = {
-            "state": "6",
-            "work_notes": "Se pasa la Release a Evaluation"
+            "state": "Assess",
+        }
+        updated_record = release.update(query={'number': rls}, payload=update)
+        print(updated_record)
+    else:
+        print("RLS state is", rls_text[rls_state])
+
+
+def approve_rls_eval(rls=number):
+    approve_sys_id = ""
+    release = c.resource(api_path='/table/sysapproval_approver')
+    rls_id, rls_state = get_rls_status(rls=rls)
+    if rls_state == "6":
+        response = release.get(query={"approver.user_name": USER, "sysapproval.number": rls}, stream=True)
+        for record in response.all():
+            print(record)
+            approve_sys_id = record['sys_id']
+        update = {
+            "state": "approved",
+            "work_notes": "Se pasa la Release a PRE"
+        }
+        updated_record = release.update(query={'sys_id': approve_sys_id}, payload=update)
+        print(updated_record)
+    else:
+        print("RLS state is", rls_text[rls_state])
+
+def approve_rls_authorize(rls=number):
+    approve_sys_id = ""
+    release = c.resource(api_path='/table/sysapproval_approver')
+    rls_id, rls_state = get_rls_status(rls=rls)
+    if rls_state == "16":
+        response = release.get(query={"approver.user_name": USER, "sysapproval.number": rls}, stream=True)
+        for record in response.all():
+            print(record)
+            approve_sys_id = record['sys_id']
+        update = {
+            "state": "approved",
+            "work_notes": "Se pasa la Release a PRE"
+        }
+        updated_record = release.update(query={'sys_id': approve_sys_id}, payload=update)
+        print(updated_record)
+    else:
+        print("RLS state is", rls_text[rls_state])
+
+
+def update_rls_scheduled(rls=number):
+    release = c.resource(api_path='/table/rm_release')
+    rls_id, rls_state = get_rls_status(rls=rls)
+    if rls_state == "8":
+        update = {
+            "state": "9",
+            "work_notes": "Implementación"
+        }
+        updated_record = release.update(query={'number': rls}, payload=update)
+        print(updated_record)
+    else:
+        print("RLS state is", rls_text[rls_state])
+
+
+def update_rls_implement(rls=number):
+    release = c.resource(api_path='/table/rm_release')
+    rls_id, rls_state = get_rls_status(rls=rls)
+    if rls_state == "9":
+        update = {
+            "state": "10",
+            "work_notes": "Se pasa la Release a Revisión",
+            "u_close_code": "Successful automatic",
+            "close_notes": "Desplegado en PRO"
+        }
+        updated_record = release.update(query={'number': rls}, payload=update)
+        print(updated_record)
+    else:
+        print("RLS state is", rls_text[rls_state])
+
+
+def update_rls_closed(rls=number):
+    release = c.resource(api_path='/table/rm_release')
+    rls_id, rls_state = get_rls_status(rls=rls)
+    if rls_state == "10":
+        update = {
+            "state": "11",
+            "work_notes": "Se pasa la Release a Revisión",
+
         }
         updated_record = release.update(query={'number': rls}, payload=update)
         print(updated_record)

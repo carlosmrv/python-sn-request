@@ -99,7 +99,7 @@ def close_test_task(tsk=number):
         "state": "Closed Complete",
         "u_close_code": "Successful automatic",
         "close_notes": "Desplegado en PRE-STG",
-        "assigned_to": "u4x7TAn4Aq@co-example.com",
+        "assigned_to": "keFXvyw4NU@generic-test.com",
         'u_performance_test_type': 'Unitary',
         'u_performance_result': 'OK',
     }
@@ -123,6 +123,13 @@ def attachment_task(tsk=number, file='requirements.txt'):
         print("Task %s Already Closed" % tsk)
 
 
+def attachment_delegate_task(tsk=number, file='requirements.txt'):
+    task = c.resource(api_path='/table/u_delegated_test')
+    upload_record = task.get(query={'u_number': tsk})
+    upload_record.upload(file_path=file)
+    print(upload_record)
+
+
 def cancel_task(tsk=number):
     task = c.resource(api_path='/table/rm_task')
     update = {
@@ -138,3 +145,4 @@ def cancel_task(tsk=number):
         print(updated_record)
     else:
         print("Task %s Already Closed" % tsk)
+

@@ -5,9 +5,11 @@ rls_text = {
     "15": "Pre-Production",
     "5": "(Test)",
     "6": "(Evaluation)",
+    "8": "(Scheduled)",
     "9": "(Implementation)",
     "10": "(Revision)",
     "11": "(Closed)",
+    "16": "(Authorize)",
     "-5": "Pending"
 }
 

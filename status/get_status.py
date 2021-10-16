@@ -21,12 +21,12 @@ def get_rls_status(rls=number):
         return sys_id_local, state_check
 
 
-def get_open_task(rls=number):
+def get_open_task(rls=number, group=ASSGROUP):
     task_list = []
     task = c.resource(api_path='/table/rm_task')
     rls_id, rls_state = get_rls_status(rls=rls)
     if rls_state == "15" or rls_state == "9" or rls_state == '5':
-        response = task.get(query={'top_task.number': rls, 'state': '1', 'assignment_group.name': ASSGROUP},
+        response = task.get(query={'top_task.number': rls, 'state': '1', 'assignment_group.name': group},
                             stream=True)
         for record in response.all():
             # print(record['number'])
