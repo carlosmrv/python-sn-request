@@ -1,13 +1,10 @@
 import pysnow
-import requests
 from releases.rls import create_rls, update_rls_cert, approve_rls_pre, update_rls_pre, update_rls_eval, \
     update_rls_test, approve_rls_eval, update_rls_scheduled, update_rls_implement, update_rls_closed, \
     approve_rls_authorize
 from tasks.tasks import create_task, get_task_status, create_delegate_task, close_task, close_test_task, \
     attachment_task, cancel_task, attachment_delegate_task
 from status.get_status import get_rls_status, get_open_task
-from datetime import datetime, timedelta
-from itertools import chain
 from config import USER, PASSWORD, INSTANCE, PARENT, REQGROUP, ASSGROUP, RLS, SNOWTECHNOLOGY, SNOWAPPLICATION, TESTGROUP
 from dict_text import rls_text, tsk_text
 
